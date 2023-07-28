@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+
+<body>
+    <button onclick="downloadImage()">Download Image</button>
+    <script>
+        // Function to download the image
+        function downloadImage() {
+            const token = "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"
+            const imageUrl = 'https://drive.google.com/thumbnail?id=1a8c7_GQky9ldEOXAhENYll4XgZMvZJvc&sz=w1000';
+
+            axios.get(imageUrl, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+                responseType: 'arraybuffer',
+            })
+                .then(response => {
+                    console.log(response);
+                    const base64Image = btoa(
+                        new Uint8Array(response.data)
+                            .reduce((data, byte) => data + String.fromCharCode(byte), '')
+                    );
+                    const imageSrc = `data:${response.headers['content-type']};base64,${base64Image}`;
+                    console.log('Image loaded:', imageSrc);
+                })
+                .catch(error => {
+                    console.error('Error downloading image:', error);
+                });
+
+
+            //                 const axios = require('axios');
+
+            // const token = 'यहां आपका टोकन होना चाहिए';
+
+            // const getImage = async () => {
+            //   try {
+            //     const response = await axios.get('https://www.googleapis.com/drive/v3/files/आपका_फ़ाइल_ID?alt=media', {
+            //       headers: {
+            //         Authorization: `Bearer ${token}`,
+            //       },
+            //       responseType: 'arraybuffer',
+            //     });
+
+            //     const imageBuffer = Buffer.from(response.data, 'binary');
+            //     // यहां आप अपने कोड में छवि का उपयोग कर सकते हैं
+            //   } catch (error) {
+            //     console.error('Error downloading image:', error);
+            //   }
+            // };
+
+            // getImage();
+
+
+
+
+            //     const imageUrl = 'https://drive.google.com/thumbnail?id=1a8c7_GQky9ldEOXAhENYll4XgZMvZJvc&sz=w1000';
+            //     const corsProxyUrl = 'https://cors-anywhere.herokuapp.com/';
+
+            //     axios.get(corsProxyUrl + imageUrl, { responseType: 'arraybuffer' })
+            //         .then(response => {
+            //             const imageUrl = response.request.res.responseUrl;
+            //             console.log('Image URL:', imageUrl);
+            //             // Do something with the image URL
+            //         })
+            //         .catch(error => {
+            //             console.error('Error downloading image:', error);
+            //         });
+        }
+    </script>
+</body>
+
+</html>
