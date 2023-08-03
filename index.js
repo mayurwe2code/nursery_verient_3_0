@@ -202,7 +202,7 @@ app.get('/auth/logout', (req, res) => {
 function startServer() {
   connection
   app.listen(8888, () => {
-    console.log(`server is running at ${process.env.SERVERPORT}`);
+    console.log(`nursery_verient_3.0_server is running at ${process.env.SERVERPORT}`);
   });
 }
 
