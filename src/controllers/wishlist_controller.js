@@ -47,7 +47,7 @@ export function wishlist(req, res) {
                 console.log(err)
                 res.status(200).json({ status: false, res_msg: "find error" })
             } else {
-                rows != "" ? res.status(200).json({ status: true, res_msg: "success", response: rows }) : res.status(200).json({ status: true, res_msg: "wishlist list empty", response: rows })
+                rows != "" ? res.status(200).json({ status: true, res_msg: "success", response: rows }) : res.status(200).json({ status: false, res_msg: "wishlist list empty", response: rows })
 
 
             }
