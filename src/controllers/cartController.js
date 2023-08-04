@@ -259,77 +259,77 @@ export async function cart_and_notification_count(req, res) {
   });
 }
 
-export async function coupan_verify(req, res) {
-  let { coupan_code, vendor_id } = req.body
+// export async function coupan_verify(req, res) {
+//   let { coupan_code, vendor_id } = req.body
 
 
-  connection.query("SELECT * FROM `used_coupan_by_users` WHERE `coupan_code` = '" + coupan_code + "' AND `user_id` = '" + req.user_id + "'",
-    (err, coupan_check) => {
-      if (err) {
-        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ "res_msg": "find error", "success": false });
-      } else {
-        if (coupan_check != "") {
-          res.status(200).json({ "res_msg": "coupan alrady used", "success": false });
-        } else {
-          const curr_date = new Date().toISOString().slice(0, 19).replace("T", " ");
-          connection.query("SELECT * FROM `coupons` where start_date <='" + curr_date + "' AND end_date >='" + curr_date + "' AND code ='" + coupan_code + "'", (err, rows) => {
-            if (err) {
-              console.log(err)
-              res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ "response": "find error", "status": false });
-            } else {
-              if (rows != "") {
-                console.log("coupan-------data--------")
-                console.log(rows)
-                let { coupan_code, vendor_id } = req.body
+//   connection.query("SELECT * FROM `used_coupan_by_users` WHERE `coupan_code` = '" + coupan_code + "' AND `user_id` = '" + req.user_id + "'",
+//     (err, coupan_check) => {
+//       if (err) {
+//         res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ "res_msg": "find error", "success": false });
+//       } else {
+//         if (coupan_check != "") {
+//           res.status(200).json({ "res_msg": "coupan alrady used", "success": false });
+//         } else {
+//           const curr_date = new Date().toISOString().slice(0, 19).replace("T", " ");
+//           connection.query("SELECT * FROM `coupons` where start_date <='" + curr_date + "' AND end_date >='" + curr_date + "' AND code ='" + coupan_code + "'", (err, rows) => {
+//             if (err) {
+//               console.log(err)
+//               res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ "response": "find error", "status": false });
+//             } else {
+//               if (rows != "") {
+//                 console.log("coupan-------data--------")
+//                 console.log(rows)
+//                 let { coupan_code, vendor_id } = req.body
 
-                connection.query('select cart.id,user_id,cart.product_id AS cart_product_id ,cart.product_verient_id AS cart_product_verient_id ,cart_product_quantity,cart.created_on AS cart_created_on,cart.updated_on AS cart_updated_on,product_view.*, (SELECT owner_name FROM `vendor` where vendor.vendor_id = product_view.vendor_id) AS owner_name from cart,product_view where cart.product_verient_id = product_view.product_verient_id AND user_id="' + req.user_id + '" AND verient_is_deleted="0" AND product_view.vendor_id = "' + vendor_id + '"', (err, results) => {
-                  if (err) {
-                    console.log(err)
-                    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ "res_msg": "find error", "success": false });
-                  } else {
-                    let products = [];
-                    let total_gst = 0, sub_total = 0, total_mrp = 0, total_discount = 0, total_delivery_charge = 0, coupan_discount = 0, coupan_discount_price = 0;
-                    let price_x_cart_qty = 0, mrp_x_cart_qty = 0, gst_amount = 0, discount_amount = 0;
-                    results.forEach((element, index) => {
-                      price_x_cart_qty = element["price"] * element["cart_product_quantity"]
-                      mrp_x_cart_qty = element["mrp"] * element["cart_product_quantity"]
-                      gst_amount = price_x_cart_qty * element["gst"] / 100
-                      discount_amount = mrp_x_cart_qty * element["discount"] / 100
+//                 connection.query('select cart.id,user_id,cart.product_id AS cart_product_id ,cart.product_verient_id AS cart_product_verient_id ,cart_product_quantity,cart.created_on AS cart_created_on,cart.updated_on AS cart_updated_on,product_view.*, (SELECT owner_name FROM `vendor` where vendor.vendor_id = product_view.vendor_id) AS owner_name from cart,product_view where cart.product_verient_id = product_view.product_verient_id AND user_id="' + req.user_id + '" AND verient_is_deleted="0" AND product_view.vendor_id = "' + vendor_id + '"', (err, results) => {
+//                   if (err) {
+//                     console.log(err)
+//                     res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ "res_msg": "find error", "success": false });
+//                   } else {
+//                     let products = [];
+//                     let total_gst = 0, sub_total = 0, total_mrp = 0, total_discount = 0, total_delivery_charge = 0, coupan_discount = 0, coupan_discount_price = 0;
+//                     let price_x_cart_qty = 0, mrp_x_cart_qty = 0, gst_amount = 0, discount_amount = 0;
+//                     results.forEach((element, index) => {
+//                       price_x_cart_qty = element["price"] * element["cart_product_quantity"]
+//                       mrp_x_cart_qty = element["mrp"] * element["cart_product_quantity"]
+//                       gst_amount = price_x_cart_qty * element["gst"] / 100
+//                       discount_amount = mrp_x_cart_qty * element["discount"] / 100
 
-                      element["price_x_cart_qty"] = price_x_cart_qty
-                      element["mrp_x_cart_qty"] = mrp_x_cart_qty
-                      element["cart_gst_amount"] = gst_amount
-                      element["cart_discount_amount"] = discount_amount
-                      total_gst += gst_amount
-                      sub_total += price_x_cart_qty
-                      total_mrp += mrp_x_cart_qty
-                      total_discount += discount_amount
-                      total_delivery_charge = 100
-                      products.push(element)
-                      if (index == results.length - 1) {
-                        coupan_discount = sub_total * rows[0]["percentage"] / 100
-                        coupan_discount_price = sub_total - coupan_discount
+//                       element["price_x_cart_qty"] = price_x_cart_qty
+//                       element["mrp_x_cart_qty"] = mrp_x_cart_qty
+//                       element["cart_gst_amount"] = gst_amount
+//                       element["cart_discount_amount"] = discount_amount
+//                       total_gst += gst_amount
+//                       sub_total += price_x_cart_qty
+//                       total_mrp += mrp_x_cart_qty
+//                       total_discount += discount_amount
+//                       total_delivery_charge = 100
+//                       products.push(element)
+//                       if (index == results.length - 1) {
+//                         coupan_discount = sub_total * rows[0]["percentage"] / 100
+//                         coupan_discount_price = sub_total - coupan_discount
 
-                        if (rows[0]["minimum_amount"] <= sub_total && sub_total <= rows[0]["maximum_amount"]) {
-                          res.status(200).json({ status: true, response: { products, coupan_price: { total_gst, sub_total, total_mrp, total_discount, total_delivery_charge, coupan_discount, coupan_discount_price } } })
-                        } else {
-                          res.status(200).json({ "status": true, "res_msg": "coupan use for beetween (minmum:" + rows[0]["minimum_amount"] + " and maximum:" + rows[0]["maximum_amount"] + ") amount order " })
-                        }
+//                         if (rows[0]["minimum_amount"] <= sub_total && sub_total <= rows[0]["maximum_amount"]) {
+//                           res.status(200).json({ status: true, response: { products, coupan_price: { total_gst, sub_total, total_mrp, total_discount, total_delivery_charge, coupan_discount, coupan_discount_price } } })
+//                         } else {
+//                           res.status(200).json({ "status": true, "res_msg": "coupan use for beetween (minmum:" + rows[0]["minimum_amount"] + " and maximum:" + rows[0]["maximum_amount"] + ") amount order " })
+//                         }
 
-                      }
-                    });
-                  }
-                });
-              } else {
-                res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ "res_msg": "invalid coupan", "status": false });
-              }
-            }
-          });
+//                       }
+//                     });
+//                   }
+//                 });
+//               } else {
+//                 res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ "res_msg": "invalid coupan", "status": false });
+//               }
+//             }
+//           });
 
-        }
-      }
-    })
-}
+//         }
+//       }
+//     })
+// }
 
 
 

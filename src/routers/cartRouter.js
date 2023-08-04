@@ -5,7 +5,7 @@ import {
   cart_delete,
   cart_list,
   cart_update,
-  cart_and_notification_count, coupan_verify
+  cart_and_notification_count
 } from "../controllers/cartController.js";
 import { auth_user, fetch_user } from '../../middleware/auth.js'
 const cartRouter = express.Router();
@@ -15,5 +15,5 @@ cartRouter.get("/cart_list/:id", fetch_user, cartById);
 cartRouter.put("/cart_delete", auth_user, cart_delete);
 cartRouter.put("/cart_update", auth_user, cart_update);
 cartRouter.get("/cart_and_notification_count", auth_user, cart_and_notification_count);
-cartRouter.post("/coupan_verify", auth_user, coupan_verify);
+// cartRouter.post("/coupan_verify", auth_user, coupan_verify);
 export default cartRouter;
