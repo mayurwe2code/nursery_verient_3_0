@@ -28,7 +28,7 @@ export async function add_order(req, res) {
     })
   var fcm_tokens = [];
   let response_send = [];
-  let all_orders_total = 0, all_orders_total_gst = 0, all_orders_total_sgst = 0, all_orders_total_cgst = 0, all_orders_total_discount = 0;
+  let all_orders_total = 0, all_orders_total_gst = 0, all_orders_total_sgst = 0, all_orders_total_cgst = 0, all_orders_total_discount = 0, admin_commission_amount = 0, Price_after_removing_admin_commission = 0;
   connection.query("SELECT * FROM user WHERE id='" + req.user_id + "'",
     (err, result) => {
       if (err) {
@@ -52,7 +52,9 @@ export async function add_order(req, res) {
                     if (err) {
 
                     } else {
-                      connection.query('select cart.id,user_id,cart.product_id AS cart_product_id ,cart.product_verient_id AS cart_product_verient_id ,cart_product_quantity,cart.created_on AS cart_created_on,cart.updated_on AS cart_updated_on,product_view.*, (SELECT owner_name FROM `vendor` where vendor.vendor_id = product_view.vendor_id) AS owner_name from cart,product_view where cart.product_verient_id = product_view.product_verient_id AND user_id="' + req.user_id + '" AND verient_is_deleted="0" AND product_view.vendor_id = "' + vendor_id + '"', (err, results) => {
+                      // connection.query("SELECT admin_commission FROM `vendor` where vendor.vendor_id = "+vendor_id+"", (err, vendo_pro) => {})
+
+                      connection.query('select cart.id,user_id,cart.product_id AS cart_product_id ,cart.product_verient_id AS cart_product_verient_id ,cart_product_quantity,cart.created_on AS cart_created_on,cart.updated_on AS cart_updated_on,product_view.*, (SELECT owner_name FROM `vendor` where vendor.vendor_id = product_view.vendor_id) AS owner_name,(SELECT admin_commission FROM `vendor` where vendor.vendor_id = product_view.vendor_id) AS admin_commission from cart,product_view where cart.product_verient_id = product_view.product_verient_id AND user_id="' + req.user_id + '" AND verient_is_deleted="0" AND product_view.vendor_id = "' + vendor_id + '"', (err, results) => {
                         if (err) {
                         } else {
 
@@ -90,14 +92,19 @@ export async function add_order(req, res) {
                               all_orders_total_sgst += total_sgst
                               all_orders_total_cgst += total_cgst
                               all_orders_total_discount += total_discount
+                              // console.log(rows_coup) 
                               try {
                                 coupan_discount = sub_total * rows_coup[0]["percentage"] / 100
                                 coupan_discount_price = sub_total - coupan_discount
                               } catch (e) {
                                 coupan_discount = 0;
+                                coupan_discount_price = sub_total;
                               }
+                              admin_commission_amount = coupan_discount_price * element["admin_commission"] / 100
+                              Price_after_removing_admin_commission = coupan_discount_price - admin_commission_amount
+
                               connection.query(
-                                "insert into `order` ( `order_id`, `product_id`,`user_id`, vendor_id, `total_order_product_quantity`,`total_amount`,`total_gst`,`total_cgst`, `total_sgst`,`total_discount`, `shipping_charges`,`invoice_id`, `payment_mode`,`payment_ref_id`,`delivery_date`, `discount_coupon`,`discount_coupon_value`,`delivery_lat`,`delivery_log`, `user_name`, `address`, `email`, `pin_code`, `city`, `user_image`, `phone_no`,`delivery_verify_code`, `only_this_order_product_total`, `only_this_order_product_quantity`, `only_this_product_gst`, `only_this_product_cgst`, `only_this_product_sgst`) VALUES ('" + orderno + "','" + element["product_id"] + "','" + req.user_id + "', '" + vendor_id + "', '" + results["length"] +
+                                "insert into `order` ( `order_id`, `product_id`,`user_id`, vendor_id, `total_order_product_quantity`,`total_amount`,`total_gst`,`total_cgst`, `total_sgst`,`total_discount`, `shipping_charges`,`invoice_id`, `payment_mode`,`payment_ref_id`,`delivery_date`, `discount_coupon`,`discount_coupon_value`,`delivery_lat`,`delivery_log`, `user_name`, `address`, `email`, `pin_code`, `city`, `user_image`, `phone_no`,`delivery_verify_code`, `only_this_order_product_total`, `only_this_order_product_quantity`, `only_this_product_gst`, `only_this_product_cgst`, `only_this_product_sgst`,`admin_commission_parcent`,`Price_after_removing_admin_commission`,`admin_commission_amount`) VALUES ('" + orderno + "','" + element["product_id"] + "','" + req.user_id + "', '" + vendor_id + "', '" + results["length"] +
                                 "','" +
                                 all_orders_total +
                                 "','" +
@@ -114,7 +121,7 @@ export async function add_order(req, res) {
                                 orderno +
                                 "','cod','121212','" + formattedDateTime + "','" + coupan_code + "','" +
                                 coupan_discount +
-                                "'," + user_lat + "," + user_log + ", '" + first_name + "', '" + address + "', '" + email + "', " + pincode + ", '" + city + "', '" + image + "','" + phone_no + "' ,'" + verify_code + "','" + sub_total + "','" + order_product_count + "','" + total_gst + "','" + total_cgst + "','" + total_sgst + "')",
+                                "'," + user_lat + "," + user_log + ", '" + first_name + "', '" + address + "', '" + email + "', " + pincode + ", '" + city + "', '" + image + "','" + phone_no + "' ,'" + verify_code + "','" + coupan_discount_price + "','" + order_product_count + "','" + total_gst + "','" + total_cgst + "','" + total_sgst + "','" + element["admin_commission"] + "','" + Price_after_removing_admin_commission + "','" + admin_commission_amount + "')",
                                 (err, rows) => {
                                   if (err) {
                                     if (order_array.length - 1 == count) {

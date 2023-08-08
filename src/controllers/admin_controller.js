@@ -599,8 +599,26 @@ function delivery_admin(req, res) {
 
 }
 
+function set_commission_on_vendor(req, res) {
+    console.log(req.body)
+    if (req.headers.admin_token) {
+        let { set_commission, vendor_id } = req.body
+        connection.query('UPDATE `vendor` SET `admin_commission`=' + set_commission + ' WHERE vendor_id = "' + vendor_id + '"', (err, rows, fields) => {
+            if (err) {
+                console.log(err)
+                res.status(200).send({ status: false, res_msg: "find some error" })
+            } else {
+                //console.log("successfully_updated")
+                rows.affectedRows == '1' ? res.status(201).send({ status: true, res_msg: "commission set successfull" }) : res.status(200).send({ status: false, res_msg: "find some error" })
+            }
+        })
+    } else {
+        res.status(200).send({ status: false, res_msg: "only for admin use" })
+    }
+}
+
 
 export {
     admin_login, update_password, admin_forgot_password, update_admin, add_admin, admin_search, admin,
-    delivery_admin_login, delivery_update_password, delivery_admin_forgot_password, delivery_update_admin, delivery_add_admin, delivery_admin_search, delivery_admin
+    delivery_admin_login, delivery_update_password, delivery_admin_forgot_password, delivery_update_admin, delivery_add_admin, delivery_admin_search, delivery_admin, set_commission_on_vendor
 };

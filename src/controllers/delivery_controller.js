@@ -358,11 +358,16 @@ export async function driver_details(req, res) {
 }
 export async function only_driver_list(req, res) {
     let query_ = "select * from delivery_man where"
+    if (req.body.search) {
+        query_ += ` driver_name LIKE '%${req.body.search}%' OR driver_last_name LIKE '%${req.body.search}%' AND  `
+    }
     for (let k in req.body) {
-        if (req.body[k] != "") {
+        if (req.body[k] != "" && k != "search") {
             query_ += ` ${k} = '${req.body[k]}' AND  `
         }
     }
+
+
     query_ = query_.substring(0, query_.length - 5)
     console.log(query_)
     connection.query(query_, (err, rows) => {
@@ -376,9 +381,9 @@ export async function only_driver_list(req, res) {
     });
 }
 export async function delete_restore_driver(req, res) {
-    var { driver_id, is_active, status } = req.body
+    var { driver_id, is_active, status } = req.bodya
     let query_ = "update delivery_man  set "
-    if (driver_id != "" && is_active != "" && status != "") {
+    if (driver_id && is_active && status) {
         query_ += " `is_active`='" + is_active + "' ,`status`='" + status + "' where driver_id ='" + driver_id + "'"
     } else {
         // res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: "please send driver id", "status": false });
@@ -516,7 +521,6 @@ export function register_your_vehicle(req, res) {
     );
 }
 
-
 export function order_asign(req, res) {
     let { order_id, payment, payment_method, order_delivery_confirm_code } = req.body
     console.log({ order_id, payment, payment_method, order_delivery_confirm_code })
@@ -574,12 +578,12 @@ export function get_delivery_detaile_list(req, res) {
     let req_obj = req.body
 
     if (req.body.date_from != "" && req.body.date_from != undefined && req.body.date_to != "" && req.body.date_to != undefined) {
-        filter += " delivery_date between '" + req.body.date_from + "' AND '" + req.body.date_to + "' AND  "
+        filter += " order_delivery_details.delivery_date between '" + req.body.date_from + "' AND '" + req.body.date_to + "' AND  "
     }
 
     for (let k in req_obj) {
         if (req_obj[k] != "" && k != "date_from" && k != "date_to") {
-            filter += ` ${k} = '${req_obj[k]}' AND  `
+            filter += ` order_delivery_details.${k} = '${req_obj[k]}' AND  `
         }
     }
 
