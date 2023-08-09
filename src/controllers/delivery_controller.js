@@ -470,7 +470,9 @@ export function chouse_driver_for_delivery(req, res) {
     if (nearest_of_delivery_pin != "" && nearest_of_delivery_pin != undefined && nearest_of_delivery_pin != null) {
         query_ += "SELECT *, ( 3959 * acos( cos( radians(" + delivery_lat + ") ) * cos( radians( driver_lat ) ) * cos( radians( driver_log ) - radians(" + delivery_log + ") ) + sin( radians(" + delivery_lat + ") ) * sin( radians( driver_lat ) ) ) ) AS distance FROM driver_working_area  LEFT JOIN delivery_man ON driver_working_area.driver_id = delivery_man.driver_id  HAVING distance < " + nearest_of_delivery_pin + " "
     } else {
-        query_ += "SELECT * FROM driver_working_area  LEFT JOIN delivery_man ON driver_working_area.driver_id = delivery_man.driver_id "
+        //if you want only show this driver , when selected working area
+        // query_ += "SELECT * FROM driver_working_area  LEFT JOIN delivery_man ON driver_working_area.driver_id = delivery_man.driver_id "
+        query_ += "SELECT delivery_man.*,vehicle_detaile.model FROM delivery_man,vehicle_detaile where delivery_man.driver_id = vehicle_detaile.driver_id GROUP BY delivery_man.driver_id "
     }
     console.log(query_)
     connection.query(query_, (err, rows) => {
@@ -610,7 +612,7 @@ export function get_delivery_detaile_list(req, res) {
 
 
 export function delivery_area_list(req, res) {
-    let qyery_ = "SELECT * FROM `driver_working_area` WHERE"
+    let qyery_ = "SELECT *,(SELECT driver_name FROM `delivery_man` WHERE delivery_man.driver_id = driver_working_area.driver_id ) AS driver_name FROM `driver_working_area` WHERE"
     console.log(req.query)
     for (let k in req.query) {
         if (req.query[k] != "") { qyery_ += ` ${k} = '${req.query[k]}' AND  ` }
