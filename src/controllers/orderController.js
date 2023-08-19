@@ -541,6 +541,81 @@ export async function order_details(req, res) {
     }
   )
 }
+// export async function order_details(req, res) {
+//   let { id, invoice_id } = req.query
+//   console.log(req.query)
+//   let condition_ = ""
+//   let resp_obj = {}
+//   let query_ = ''
+//   let chek_token = true;
+//   if (invoice_id) {
+//     condition_ = " `order`.`invoice_id` = '" + invoice_id + "' "
+//   }
+//   if (id) {
+//     condition_ = " `order`.`order_id` = '" + id + "' "
+//   }
+
+//   if ("admin_token" in req.headers) {
+//     chek_token = false;
+//     query_ += 'SELECT *,(select delivered_date from `order_delivery_details` where `order`.order_id = `order_delivery_details`.order_id) AS delivered_date FROM `order` WHERE ' + condition_ + ' '
+
+//   } else if (req.user_id) {
+//     query_ += 'SELECT *,(select delivered_date from `order_delivery_details` where `order`.order_id = `order_delivery_details`.order_id) AS delivered_date FROM `order` WHERE ' + condition_ + ' AND user_id ="' + req.user_id + '" '
+//   }
+//   else {
+//     if (req.vendor_id) {
+//       query_ += 'SELECT *,(select delivered_date from `order_delivery_details` where `order`.order_id = `order_delivery_details`.order_id) AS delivered_date FROM `order` WHERE ' + condition_ + ' AND vendor_id ="' + req.vendor_id + '" '
+//     }
+//   }
+//   // if("user_token" in req.headers){
+
+//   // }
+//   console.log("-------" + query_)
+//   connection.query(query_,
+//     (err, rows) => {
+//       if (err) {
+//         console.log(err)
+//         res.status(StatusCodes.INSUFFICIENT_STORAGE).json(err);
+//       } else {
+//         if (rows != "") {
+//           resp_obj["success"] = true
+//           resp_obj["order_detaile"] = rows
+//           req.user_id = rows[0]["user_id"]
+//           let order_id = rows[0]["order_id"]
+//           connection.query('SELECT * FROM `order_detaile1` where order_id =' + order_id + '',
+//             (err, rows) => {
+//               if (err) {
+//                 console.log(err)
+//                 res.status(StatusCodes.INSUFFICIENT_STORAGE).json(err);
+//               } else {
+//                 resp_obj["success"] = true
+//                 resp_obj["order_product_detaile"] = rows
+//                 // res.status(StatusCodes.OK).json(resp_obj);        
+//                 // if (chek_token) {
+//                 connection.query("select * from user where id= '" + req.user_id + "'", (err, rows) => {
+//                   if (err) {
+//                     res
+//                       .status(StatusCodes.INTERNAL_SERVER_ERROR)
+//                       .json({ message: "something went wrong", "status": false });
+//                   } else {
+//                     resp_obj["user_detaile"] = rows
+//                     res.status(StatusCodes.OK).json(resp_obj);
+//                   }
+//                 })
+//                 // } else {
+//                 //   res.status(StatusCodes.OK).json(resp_obj);
+//                 // }
+
+//               }
+//             }
+//           );
+//         } else {
+//           res.status(200).json({ "success": false, "response": "not found" });
+//         }
+//       }
+//     }
+//   )
+// }
 
 export async function order_update(req, res) {
   var {

@@ -346,7 +346,8 @@ export async function driver_details(req, res) {
     console.log("========================friver id test")
     console.log(req.driver_id)
     // return false
-    connection.query("select * from user_and_vehicle_view_1 where driver_id= '" + req.driver_id + "'", (err, rows) => {
+
+    connection.query("SELECT * FROM delivery_man LEFT JOIN vehicle_detaile ON delivery_man.driver_id = vehicle_detaile.driver_id where driver_id= '" + req.driver_id + "'", (err, rows) => {
         if (err) {
             res
                 .status(StatusCodes.INTERNAL_SERVER_ERROR)
@@ -447,10 +448,11 @@ export function add_working_area(req, res) {
     let { city, area_name, pin_code, driver_log, driver_lat } = req.body
     let query_ = ""
     if (req.headers.admin_token != "" && req.headers.admin_token != undefined) {
-        query_ += "INSERT INTO `driver_working_area`(`city`, `area_name`, `pin_code`, `driver_log`, `driver_lat`) VALUES ('" + city + "','" + area_name + "'," + pin_code + "," + driver_log + "," + driver_lat + ")"
+        query_ += "INSERT INTO `driver_working_area`(`driver_id`,`city`, `area_name`, `pin_code`, `driver_log`, `driver_lat`) VALUES (" + driver_id + ",'" + city + "','" + area_name + "'," + pin_code + "," + driver_log + "," + driver_lat + ")"
     }
     if (req.headers.driver_token != "" && req.headers.driver_token != undefined) {
-        query_ += "INSERT INTO `driver_working_area`( `city`, `area_name`, `pin_code`, `driver_log`, `driver_lat`) VALUES ('" + city + "','" + area_name + "'," + pin_code + "," + driver_log + "," + driver_lat + ")"
+        if (!driver_lat && !driver_log) { driver_lat = 0; driver_log = 0 }
+        query_ += "INSERT INTO `driver_working_area`( `driver_id`,`city`, `area_name`, `pin_code`, `driver_log`, `driver_lat`) VALUES ('" + req.driver_id + "','" + city + "','" + area_name + "','" + pin_code + "','" + driver_log + "','" + driver_lat + "')"
     }
     console.log(query_)
     connection.query(query_, (err, rows) => {
@@ -569,7 +571,7 @@ export function order_asign_by_delivery_admin(req, res) {
                 }
                 );
             } else {
-                res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ message: "driver has no vehicle", "status": false });
+                res.status(StatusCodes.OK).json({ message: "driver has no vehicle", "status": false });
             }
         }
     });
@@ -733,7 +735,7 @@ export function driver_add_by_admin(req, res) {
     let srt_values = "";
     for (let k in req.files) {
         str_fields += ` ,${k}`
-        srt_values += ` ,"${req.protocol + "://" + req.headers.host}/${req.files[k][0]["filename"]}"`
+        srt_values += ` ,"${req.protocol + "://" + req.headers.host}/driver_profile/${req.files[k][0]["filename"]}"`
     }
 
     console.log("INSERT INTO `delivery_man`(`driver_name`, `driver_last_name`, `date_of_birth`, `current_address`, `gender`, `age`, `contect_no`, `email`, `password`,`aadhar_no`, `licence_no`, `licence_issue_date`, `licence_validity_date`" + str_fields + ") VALUES ( '" + driver_name + "', '" + driver_last_name + "', '" + date_of_birth + "', '" + current_address + "', '" + gender + "', '" + age + "', '" + contect_no + "', '" + email + "', '" + password + "', '" + aadhar_no + "', '" + licence_no + "', '" + licence_issue_date + "', '" + licence_validity_date + "' " + str_fields + ")")
@@ -805,9 +807,14 @@ export function driver_list(req, res) {
     );
 }
 export function vehicle_list(req, res) {
-    let query_ = "SELECT * FROM `vehicle_detaile` WHERE"
+    let { search } = req.body
+    let query_ = "SELECT *,(SELECT driver_name FROM `delivery_man` WHERE delivery_man.driver_id = vehicle_detaile.driver_id) AS driver_name FROM `vehicle_detaile` WHERE"
+    if (search) {
+        //vehicle_owner_name,chassis_number,registration_no_of_vehicle,model,company_name
+        query_ += ` vehicle_owner_name LIKE '%${search}%' OR chassis_number LIKE '%${search}%' OR registration_no_of_vehicle LIKE '%${search}%' OR model LIKE '%${search}%' OR company_name LIKE '%${search}%' AND  `
+    }
     for (let k in req.body) {
-        if (req.body[k] != "") {
+        if (req.body[k] != "" && k != "search") {
             query_ += ` ${k} = '${req.body[k]}' AND  `
         }
     }
